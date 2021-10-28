@@ -1,9 +1,17 @@
-(ns aoc-2018-1)
-(comment
-  (slurp "src/input_2018_1.txt"))
+(ns aoc-2018-1
+  (:require [clojure.string :as str]))
 
-(def sum  0)
+;;[Part 1]
+;;file read
+(def input_list
+  (str/split-lines (slurp "src/input_2018_1.txt")))
 
-(defn add [n])
-  (+ sum n)
+;;string -> int
+(defn toInt [str]
+  (if (nil? str) 0 (Integer/parseInt str) ))
+
+(map toInt input_list)
+
+;;sum of list
+(reduce + (map toInt input_list))
 
