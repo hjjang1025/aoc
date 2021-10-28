@@ -10,8 +10,6 @@
 (defn toInt [str]
   (if (nil? str) 0 (Integer/parseInt str) ))
 
-(map toInt input_list)
-
 ;;sum of list
 (reduce + (map toInt input_list))
 
