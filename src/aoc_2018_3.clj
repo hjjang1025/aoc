@@ -30,17 +30,16 @@
 
 (loop [i 0
        order (first input-list)
-       rest-order (rest input-list)
+       orders (rest input-list)
        fabric-map {}]
   (if (= i (count input-list))
     (->> fabric-map
          (filter #(-> % val (> 1)))
          count)
-    (do
-      (recur (inc i)
-             (first rest-order)
-             (rest rest-order)
-             (merge-with + fabric-map (fabric-piece order))))))
+    (recur (inc i)
+           (first orders)
+           (rest orders)
+           (merge-with + fabric-map (fabric-piece order)))))
 
 
 ;===========[Part 2]===========
