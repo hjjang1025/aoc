@@ -29,10 +29,10 @@
 ;(common-between "abcde" "abcee") => abce
 ;(common-between "abcdefff" "abceeggg") => nil
 (defn common-between [str-a str-b]
-  (let [common-str (->> (map vector str-a str-b)
-                        (filter (fn [[x y]] (= x y)))
-                        (map first)
-                        str/join)]
+  (let [common-str (->> (map vector str-a str-b) ; [(\a \a) (\b \b) (\c \c) (\d \e) (\e \e)]
+                        (filter (fn [[x y]] (= x y))) ; [(\a \a) (\b \b) (\c \c) (\e \e)]
+                        (map first) ; [\a \b \c \e]
+                        str/join)]  ; abce
     (when (= (count common-str) (- (count str-a) 1))
       common-str)))
 
