@@ -1,6 +1,7 @@
 (ns aoc-2018-3
   (:require [clojure.string :as str]
-            [clojure.math.combinatorics :as combo]))
+            [clojure.math.combinatorics :as combo]
+            [clojure.set :as set]))
 
 ;===========[Part 1]===========
 ; "#1 @ 935,649: 22x22"
@@ -43,3 +44,36 @@
 
 
 ;===========[Part 2]===========
+(defn fabric-piece-set [{:keys [x y width height]}]
+  (->> (for [xs (take width (drop x (range)))  ; `(1 2)
+             ys (take height (drop y (range)))]; `(3 4)
+         [xs ys])
+       set))
+
+(def fabric-intersection-set
+  (->> (loop [i 0
+              order (first input-list)
+              orders (rest input-list)
+              fabric-map {}]
+         (if (= i (count input-list))
+           (->> fabric-map
+                (filter #(-> % val (> 1)))
+                (map key))
+           (recur (inc i)
+                  (first orders)
+                  (rest orders)
+                  (merge-with + fabric-map (fabric-piece order)))))
+       set))
+
+(comment
+  (loop [i 0
+         order (first input-list)
+         orders (rest input-list)]
+    (let [piece-set (fabric-piece-set order)]
+      (if (empty? (set/intersection piece-set fabric-intersection-set))
+        order ;=> {:i 1019, :x 436, :y 770, :width 14, :height 22}
+        (recur (inc i)
+               (first orders)
+               (rest orders))))))
+
+
