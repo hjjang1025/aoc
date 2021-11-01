@@ -1,13 +1,13 @@
 (ns aoc-2018-3
   (:require [clojure.string :as str]
-            [clojure.math.combinatorics :as combo]
             [clojure.set :as set]))
 
 ;===========[Part 1]===========
 ; "#1 @ 935,649: 22x22"
 ; => {:i 1, :x 935, :y 649, :width 22, :height 22}
 (defn match [str]
-  (let [[_ i x y w h] (re-matches #"#([0-9]+) @ ([0-9]+),([0-9]+): ([0-9]+)x([0-9]+)" str)]
+  (let [[_ i x y w h]
+        (re-matches #"#([0-9]+) @ ([0-9]+),([0-9]+): ([0-9]+)x([0-9]+)" str)]
     {:i (Integer/parseInt i)
      :x (Integer/parseInt x)
      :y (Integer/parseInt y)
@@ -50,6 +50,7 @@
          [xs ys])
        set))
 
+;fabric-intersection-set : part1의 마지막 loop를 활용한 교집합 좌표 set
 (def fabric-intersection-set
   (->> (loop [i 0
               order (first input-list)
@@ -65,6 +66,7 @@
                   (merge-with + fabric-map (fabric-piece order)))))
        set))
 
+;fabric-intersection-set에 포함된 좌표가 없는 order를 출력
 (comment
   (loop [i 0
          order (first input-list)
