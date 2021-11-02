@@ -16,7 +16,7 @@
 
 ;file read
 (def input-list
-  (->> (slurp "src/input_2018_3.txt")
+  (->> (slurp "resources/input_2018_3.txt")
        str/split-lines
        (map match)))
 

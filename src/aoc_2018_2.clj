@@ -6,7 +6,7 @@
 
 ;file read
 (def input-list
-  (str/split-lines (slurp "src/input_2018_2.txt")))
+  (str/split-lines (slurp "resources/input_2018_2.txt")))
 
 (defn count-duplicate [times str]
   (count (filter (fn [[_ v]] (= v times)) (frequencies str))))
@@ -22,7 +22,7 @@
 ;===========[Part 2]===========
 ; list to vector
 (def ids
-  (->> (slurp "src/input_2018_2.txt")
+  (->> (slurp "resources/input_2018_2.txt")
        str/split-lines
        vec))
 
