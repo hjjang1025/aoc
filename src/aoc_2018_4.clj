@@ -67,9 +67,8 @@
        (reduce concat)))
 
 ;4-------------------------------
-;get duration (count list)
-;get frequencies
-(defn range-to-info [guard list]
+;get duration (count list) and frequencies
+(defn range-to-info "get duration and frequencies" [guard list]
   {:guard guard
    :duration (count list)
    :frequencies (sort-by val (frequencies list))})
@@ -81,5 +80,15 @@
        :logs
        (apply (partial merge-with into)) ;2 Refactoring⭐ 불필요한 함수 삭제 후 apply 사용
        (map (fn [[k v]] (range-to-info k (log-to-range v))))  ;3, 4
-       (sort-by :duration)
-       last))
+       (apply max-key :duration))) ;Refactoring⭐ 최대값 구하기->sort 대신 max-key로 변경
+
+
+;===========[Part 2]===========
+(comment
+  (->> input-list
+       (reduce generate-logs {:logs [] :last-guard 0})
+       :logs
+       (apply (partial merge-with into))
+       (map (fn [[k v]] (range-to-info k (log-to-range v)))) ;--여기까지 Part 1과 동일합니다--
+       (filter #(->> % :frequencies seq)) ; NullPointException을 막기 위해 한번도 잠들지 않은 guard를 filter로 제거
+       (apply max-key #(->> % :frequencies last second)))) ; 가장 큰 frequency 기준으로 최대값 추출

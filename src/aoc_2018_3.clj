@@ -105,11 +105,12 @@
                (first orders)
                (rest orders))))))
 
-(defn not-in-intersection-set [order]
- (when (empty? (set/intersection (fabric-piece-set order) fabric-intersection-set))
-   order))
 
 ; Refactoring⭐ loop to filter
+(defn not-in-intersection-set [order]
+  (when (empty? (set/intersection (fabric-piece-set order) fabric-intersection-set))
+    order))
+
 (->> input-list
      (map not-in-intersection-set)
      (remove nil?))
