@@ -24,23 +24,38 @@
 ; => {[1 3] 1 [1 4] 1
 ;     [2 3] 1 [2 4] 1}
 (defn fabric-piece [{:keys [x y width height]}]
-  (->> (for [xs (take width (drop x (range)))  ; `(1 2)
-             ys (take height (drop y (range)))]; `(3 4)
+  (->> (for [xs (take width (drop x (range)))  ; `(1 2) (range x (+ x width))
+             ys (take height (drop y (range)))]; `(3 4) (range y (+ y height))
          [xs ys])
        frequencies))
 
-(loop [i 0
-       order (first input-list)
-       orders (rest input-list)
-       fabric-map {}]
-  (if (= i (count input-list))
-    (->> fabric-map
-         (filter #(-> % val (> 1)))
-         count)
-    (recur (inc i)
-           (first orders)
-           (rest orders)
-           (merge-with + fabric-map (fabric-piece order)))))
+; 🔥 loop로 구현한 지난 날..
+(comment
+  (loop [i 0
+         order (first input-list)
+         orders (rest input-list)
+         fabric-map {}]
+    (if (= i (count input-list))
+      (->> fabric-map
+           (filter #(-> % val (> 1)))
+           count)
+      (recur (inc i)
+             (first orders)
+             (rest orders)
+             (merge-with + fabric-map (fabric-piece order))))))
+
+; Refactoring⭐ loop to reduce
+;{[1 3] 1 [1 4] 1}
+; [2 3] 1 [2 4] 1}
+(defn generate-fabric-map [fabric-map order]
+  (merge-with + fabric-map (fabric-piece order)))
+
+(comment
+  (->> input-list
+       (reduce generate-fabric-map {})
+       (filter #(-> % val (> 1)))
+       count))
+
 
 
 ;===========[Part 2]===========
@@ -51,7 +66,9 @@
        set))
 
 ;fabric-intersection-set : part1의 마지막 loop를 활용한 교집합 좌표 set
-(def fabric-intersection-set
+
+; 🔥 loop로 구현한 지난 날..
+(def fabric-intersection-set-old
   (->> (loop [i 0
               order (first input-list)
               orders (rest input-list)
@@ -66,7 +83,17 @@
                   (merge-with + fabric-map (fabric-piece order)))))
        set))
 
+; Refactoring⭐ loop to reduce
+(def fabric-intersection-set
+  (->> input-list
+       (reduce generate-fabric-map {})
+       (filter #(-> % val (> 1)))
+       (map key)
+       set))
+
 ;fabric-intersection-set에 포함된 좌표가 없는 order를 출력
+
+; 🔥 loop로 구현한 지난 날..
 (comment
   (loop [i 0
          order (first input-list)
@@ -78,4 +105,11 @@
                (first orders)
                (rest orders))))))
 
+(defn not-in-intersection-set [order]
+ (when (empty? (set/intersection (fabric-piece-set order) fabric-intersection-set))
+   order))
 
+; Refactoring⭐ loop to filter
+(->> input-list
+     (map not-in-intersection-set)
+     (remove nil?))
