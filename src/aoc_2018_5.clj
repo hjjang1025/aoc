@@ -2,36 +2,27 @@
   (:require [clojure.string :as str]))
 
 ;===========[Part 1]===========
-;(reactive?? \a \A) => true
-;(reactive?? \A \a) => true
+;(reactive? \a \A) => true
+;(reactive? \A \a) => true
 (defn reactive? "반응할 수 있는 조건" [left right]
   (= 32 (Math/abs (- (int left) (int right)))))
 
-;
-;
 ;example : vVabcZz
+;unit => remain
 ;v => [v]
-;vV => []
-;vVa => [a]
-;vVab => [a b]
-;vVabc => [a b c]
-;vVabcZ => [a b c Z]
-;vVabcZz => [a b c]
+;V => []
+;a => [a]
+;b => [a b]
+;c => [a b c]
+;Z => [a b c Z]
+;z => [a b c]
 (defn generate-remain-polymer
   "reactive? 에 부합하지 않는 문자열 vector(=remain)를 취합"
   [remain unit]
   (if (and (seq remain) ;NullPointException 방지
-           (reactive? (last remain) unit))
-    (vec (drop-last remain)) ;conj로 unit을 추가할 때 last에 추가하기 위해 vector로 사용
+           (reactive? (peek remain) unit)) ;🌟성능개선!🌟last -> peek
+    (vec (pop remain)) ;🌟성능개선!🌟drop-last -> pop
     (conj remain unit)))
-
-;속도가 너무 느려서 자료구조 고민을..
-;(defn generate-remain-map [{:keys [remain remain-count last-unit]} unit]
-;  (if (and (> remain-count 0)
-;           (reactive? last-unit unit))
-;    {:remain :remain-count (dec remain-count) :last-unit last-unit}
-;    {(conj remain unit) :remain-count (inc remain-count) :last-unit unit}))
-;
 
 (def polymer (slurp "resources/input_2018_5.txt"))
 
@@ -40,15 +31,14 @@
        (reduce generate-remain-polymer [])
        count))
 
-;(comment
-;  (->> polymer
-;       (reduce generate-remain-map {:remain [] :remain-count 0 :last-unit nil})))
-
 ;===========[Part 2]===========
 
 
-(def units `("aA" "bB" "cC" "dD" "eE" "fF" "gG" "hH" "iI" "jJ" "kK" "lL" "mM" "nN"
-             "oO" "pP" "qQ" "rR" "sS" "tT" "uU" "vV" "wW" "xX" "yY" "zZ"))
+(def units ["aA" "bB" "cC" "dD" "eE" "fF" "gG" "hH" "iI" "jJ" "kK" "lL" "mM" "nN"
+                "oO" "pP" "qQ" "rR" "sS" "tT" "uU" "vV" "wW" "xX" "yY" "zZ"])
+;TODO for -> get seq
+;(for [i (range 97 123)] (reduce..))
+;regex 알파벳 무관하게
 
 (defn polymer-without-unit
   "unit(알파벳) 하나씩 빠진 polymer sequence"
@@ -65,7 +55,8 @@
 (comment
   (->> units
        (map polymer-without-unit)
-       (map get-remain-count)))
+       (map get-remain-count)
+       (apply min)))
 
 
 
