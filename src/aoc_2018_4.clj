@@ -90,5 +90,5 @@
        :logs
        (apply (partial merge-with into))
        (map (fn [[k v]] (range-to-info k (log-to-range v)))) ;--여기까지 Part 1과 동일합니다--
-       (filter #(->> % :frequencies seq)) ; NullPointException을 막기 위해 한번도 잠들지 않은 guard를 filter로 제거
-       (apply max-key #(->> % :frequencies last second)))) ; 가장 큰 frequency 기준으로 최대값 추출
+       (filter #(-> % :frequencies seq)) ; NullPointException을 막기 위해 한번도 잠들지 않은 guard를 filter로 제거
+       (apply max-key #(-> % :frequencies last second)))) ; 가장 큰 frequency 기준으로 최대값 추출
