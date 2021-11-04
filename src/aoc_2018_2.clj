@@ -37,9 +37,11 @@
       common-str)))
 
 ; 연산할 조합 리스트
-; ["a" "b"] ["a" "b"] => (("a" "a") ("a" "b") ("b" "a") ("b" "b"))
-(def ids-cartesian-product (combo/cartesian-product ids ids))
+; ["a" "b" "c"] => (("a" "b") ("a" "c") ("b" "c"))
+;Refactoring⭐️ combinations 사용
+(def ids-cartesian-product (combo/combinations ids 2))
 
+;🔥loop
 (comment
   (loop [[str-a str-b] (first ids-cartesian-product)
          rest-cartesian-product (rest ids-cartesian-product)]
@@ -48,10 +50,8 @@
       (recur (first rest-cartesian-product)
              (rest rest-cartesian-product)))))
 
-
-
-
-
-
-
+;⭐️Reduce
+(comment
+  (->> ids-cartesian-product
+       (keep #(apply common-between %))))
 

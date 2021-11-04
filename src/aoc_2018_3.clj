@@ -20,13 +20,14 @@
        str/split-lines
        (map match)))
 
-; {:x 1, :y 3, :width 2, :height 2}
-; => {[1 3] 1 [1 4] 1
-;     [2 3] 1 [2 4] 1}
 
 ;Refactoring⭐ take, drop to range
 ;(take width (drop x (range) 에서
 ;x가 아주 커질 경우 성능 이슈가 있을 수 있다고 합니다
+
+; {:x 1, :y 3, :width 2, :height 2}
+; => {[1 3] 1 [1 4] 1
+;     [2 3] 1 [2 4] 1}
 (defn fabric-piece [{:keys [x y width height]}]
   (->> (for [xs (range x (+ x width))  ; `(1 2) ;Refactoring⭐ take, drop to range
              ys (range y (+ y height))]; `(3 4) ;Refactoring⭐ take, drop to range
