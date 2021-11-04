@@ -8,14 +8,22 @@
 (def input-list
   (str/split-lines (slurp "resources/input_2018_2.txt")))
 
-(defn count-duplicate [times str]
-  (count (filter (fn [[_ v]] (= v times)) (frequencies str))))
+;[⭐1]️ frequencies 를 count-times-frequencies 밖에서 계산
+(defn count-times-frequencies [times frequencies]
+  (count
+    (filter (fn [[_ v]] (= v times))
+            frequencies)))
 
+;[⭐2] 문제의 정답을 계산할 때 반복되는 부분을 함수로 분리
+(defn count-duplicate [times seq]
+  (->> seq
+       (map frequencies) [⭐1]
+       (map (partial count-times-frequencies times))
+       (filter pos-int?)
+       count))
 
-(*
-  (count (filter pos-int? (map (partial count-duplicate 2) input-list)))
-  (count (filter pos-int? (map (partial count-duplicate 3) input-list))))
-
+(comment
+  (* (count-duplicate 2 input-list) (count-duplicate 3 input-list)))
 
 
 
