@@ -7,7 +7,7 @@
 (defn reactive? "반응할 수 있는 조건" [left right]
   (= 32 (Math/abs (- (int left) (int right)))))
 
-;reactive? 에 부합하지 않는 문자열 vector(=remain)를 취합
+;
 ;
 ;example : vVabcZz
 ;v => [v]
@@ -17,7 +17,9 @@
 ;vVabc => [a b c]
 ;vVabcZ => [a b c Z]
 ;vVabcZz => [a b c]
-(defn generate-remain-polymer [remain unit]
+(defn generate-remain-polymer
+  "reactive? 에 부합하지 않는 문자열 vector(=remain)를 취합"
+  [remain unit]
   (if (and (seq remain) ;NullPointException 방지
            (reactive? (last remain) unit))
     (vec (drop-last remain)) ;conj로 unit을 추가할 때 last에 추가하기 위해 vector로 사용
@@ -43,12 +45,14 @@
 ;       (reduce generate-remain-map {:remain [] :remain-count 0 :last-unit nil})))
 
 ;===========[Part 2]===========
-;알파벳 하나씩 빠진 polymer sequence
+
 
 (def units `("aA" "bB" "cC" "dD" "eE" "fF" "gG" "hH" "iI" "jJ" "kK" "lL" "mM" "nN"
              "oO" "pP" "qQ" "rR" "sS" "tT" "uU" "vV" "wW" "xX" "yY" "zZ"))
 
-(defn polymer-without-unit [unit]
+(defn polymer-without-unit
+  "unit(알파벳) 하나씩 빠진 polymer sequence"
+  [unit]
   (str/replace polymer
                (re-pattern (format "[%s]" unit))
                ""))
