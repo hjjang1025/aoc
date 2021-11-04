@@ -17,13 +17,15 @@
 ;[⭐2] 문제의 정답을 계산할 때 반복되는 부분을 함수로 분리
 (defn count-duplicate [times seq]
   (->> seq
-       (map frequencies) [⭐1]
+       (map frequencies) ;[⭐1]
        (map (partial count-times-frequencies times))
        (filter pos-int?)
        count))
 
+;[⭐3] ->> 로 정리
 (comment
-  (* (count-duplicate 2 input-list) (count-duplicate 3 input-list)))
+  (* (->> input-list (count-duplicate 2))
+     (->> input-list (count-duplicate 3))))
 
 
 
