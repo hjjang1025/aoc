@@ -90,7 +90,6 @@
                              (reduce +))]
     (< sum-of-distance 10000)))
 
-(within-desired-region? chronal-coordinates [1 1])
 (comment
   (->> chronal-coordinates
        area
