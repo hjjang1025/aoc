@@ -79,5 +79,21 @@
        area ;Processing 1
        (map (partial index-of-closest-coordinate chronal-coordinates)) ;Processing2
        frequencies ;Aggregation
-       (filter #(->> % key infinite-coordinates not)) ;[index-of-coordinate 면적]
-       (apply max-key second))) ;면적 기준으로 최고값 추출
+       (filter #(->> % key infinite-coordinates not)) ;무한한 좌표를 제거하고 return [index-of-coordinate 면적]
+       (apply max-key second))) ;Print : 면적 기준으로 최고값 Print
+
+;===========[Part 2]===========
+
+(defn within-desired-region? [coordinates coordinate]
+  (let [sum-of-distance (->> coordinates
+                             (map (partial manhattan-distance coordinate))
+                             (reduce +))]
+    (< sum-of-distance 10000)))
+
+(within-desired-region? chronal-coordinates [1 1])
+(comment
+  (->> chronal-coordinates
+       area
+       (map (partial within-desired-region? chronal-coordinates))
+       (filter true?)
+       count))
