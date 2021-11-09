@@ -151,10 +151,6 @@
             vec))
      rest-edges]))
 
-(def step-edges-sample
-  [["C" "A"] ["C" "F"] ["A" "B"] ["A" "D"] ["B" "E"] ["D" "E"] ["F" "E"]])
-
-
 (def order-for-worker (->> (iterate generate-order-for-workers [[] step-edges])
                            (take 26)
                            last
@@ -177,11 +173,6 @@
       fast-end)))
 
 
-(get-end-of-parents [step-edges-sample initial-worker-logs] "C")
-
-(get-end-of-parents [step-edges initial-worker-logs] "X")
-
-
 (defn index-of-worker-by-step [[edges worker-logs] step]
   (let [end-of-parents (get-end-of-parents [edges worker-logs] step)
         worker-logs-endpoint (->> (vals (group-by :worker-id worker-logs))
@@ -189,7 +180,9 @@
                                   (map last))
         worker-id (->> worker-logs-endpoint
                        (filter #(>= end-of-parents (:end %)))
-                       (sort-by (juxt (fn [worker-log] (Math/abs (- (worker-log :end) end-of-parents))) :worker-id)) ;FIXME 남는 공간 없애기
+                       (sort-by (juxt (fn [worker-log]
+                                        (Math/abs (- (worker-log :end) end-of-parents))) ;새 step을 추가할 때 낭비하는 second가 없는 worker를 선택해야 한다
+                                      :worker-id))
                        first
                        :worker-id)
         end-fast-worker-id (->> worker-logs-endpoint
@@ -215,8 +208,6 @@
                           {:worker-id 3 :step nil :start 0 :end 0}
                           {:worker-id 4 :step nil :start 0 :end 0}])
 
-(index-of-worker-by-step [step-edges-sample [{:worker-id 0, :step nil, :start 0, :end 0}
-                                             {:worker-id 1, :step nil, :start 0, :end 0}] ] "C")
 
 (defn last-end
   "worker의 마지막으로 저장된 end"
