@@ -122,9 +122,7 @@
   "order-for-workers [C A F B D E]"
   [[order edges]]
   (let [steps (->> edges  ;중복 제거한 모든 step set
-                   sort
                    flatten
-                   distinct
                    set)
         root-steps (->> steps
                         (filter #(empty? (parents-of-step edges %)))
@@ -149,7 +147,7 @@
                            last
                            first))
 
-
+;when-do-i-start
 (defn get-end-of-parents [[edges worker-logs] step]
   (let [parents (parents-of-step edges step)
         max-end-parents (->> (filter #(parents (:step %)) worker-logs)
@@ -164,7 +162,6 @@
     (if (seq parents)
       max-end-parents
       fast-end)))
-
 
 (defn index-of-worker-by-step [[edges worker-logs] step]
   (let [end-of-parents (get-end-of-parents [edges worker-logs] step)
@@ -186,13 +183,6 @@
     (if (nil? worker-id)
       end-fast-worker-id
       worker-id)))
-
-
-;(sort-by (juxt (fn [worker-log] (Math/abs (- (worker-log :end)
-;                                             80)))
-;               :worker-id)
-;         [{:worker-id 2, :step "R", :start 0, :end 78}
-;          {:worker-id 3, :step "T", :start 0, :end 80}])
 
 ;초기화
 (def initial-worker-logs [{:worker-id 0 :step nil :start 0 :end 0}
@@ -217,13 +207,12 @@
   (let [end-of-parents (get-end-of-parents [edges worker-logs] step) ;parents-step의 end
         worker-id (index-of-worker-by-step [edges worker-logs] step)
         last-end-of-worker (last-end worker-logs worker-id) ;worker-id의 end
-        start (apply max [end-of-parents last-end-of-worker])
+        start (max end-of-parents last-end-of-worker)
         end (+ start (second-of-step step))]
     {:worker-id worker-id
      :step step
      :start start
      :end end}))
-
 
 (defn generate-worker-logs [[edges worker-logs order-for-worker]]
   (let [order (first order-for-worker)]
