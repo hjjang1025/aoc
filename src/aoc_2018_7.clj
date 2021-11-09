@@ -83,9 +83,8 @@
 
 (comment
   (->> (iterate generate-step-order [[] step-edges])
-       (take 26)
-       last
-       first
+       (drop-while (fn [[order edges]] (seq edges)))
+       ffirst
        flatten
        str/join))
 
@@ -100,7 +99,7 @@
 ;F | C
 
 (defn parents-of-step 
-  "먼저 끝내야 하는 부모 step을 찾아주는 함수
+  "step보다 먼저 끝내야 하는 set을 찾아주는 함수
    (parents-of-step [[C A] [C F] [A B] [A D] [B E] [D E] [F E]] C) => nil
    (parents-of-step [[C A] [C F] [A B] [A D] [B E] [D E] [F E]] A) => C
    (parents-of-step [[C A] [C F] [A B] [A D] [B E] [D E] [F E]] E) => #{F B D}"
@@ -109,12 +108,6 @@
        (filter #(= step (second %)))
        (map first)
        set))
-
-(parents-of-step step-edges "Q")
-
-(parents-of-step [["C" "A"] ["C" "F"] ["A" "B"] ["A" "D"] ["B" "E"] ["D" "E"] ["F" "E"]] "C")
-(parents-of-step [["C" "A"] ["C" "F"] ["A" "B"] ["A" "D"] ["B" "E"] ["D" "E"] ["F" "E"]] "E")
-
 
 (defn second-of-step
   "소요 시간(second)를 계산
@@ -240,8 +233,8 @@
 
 (comment
   (->> (iterate generate-worker-logs [step-edges initial-worker-logs order-for-worker])
-       (take 27)
-       last))
+       (drop-while (fn [[edges worker-logs order]] (seq order)))
+       first))
 
 ; worker-logs
 ; [{:worker-id 0 :step nil :start 0 :end 0}
