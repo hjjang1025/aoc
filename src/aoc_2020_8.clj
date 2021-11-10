@@ -13,11 +13,11 @@
                        (map parse-instruction)))
 
 (def initial-state
-  {:flag :ready
+  {:type :ready
    :idx-order [0]
    :accumulator 0})
 
-; :flag type
+; [state type]
 ; :ready
 ; :running
 ; :in-loop
@@ -32,7 +32,7 @@
      (- len-of-program 1)))
 
 
-(defn update-flag [state next-idx len-of-program]
+(defn update-type [state next-idx len-of-program]
   (cond (in-loop? state next-idx) :in-loop
         (terminate? next-idx len-of-program) :terminate
         :else :running))
@@ -50,41 +50,42 @@
 
 (defn update-state [instruction state len-of-program]
   (case (instruction :operation)
-    :nop (assoc state :flag      (update-flag state
+    :nop (assoc state :type      (update-type state
                                               (get-next-idx state 1)
                                               len-of-program)
                       :idx-order (update-idx-order state 1))
 
-    :jmp (assoc state :flag      (update-flag state
+    :jmp (assoc state :type      (update-type state
                                               (get-next-idx state (instruction :argument))
                                               len-of-program)
                       :idx-order (update-idx-order state (instruction :argument)))
 
-    :acc (assoc state :flag      (update-flag state
+    :acc (assoc state :type      (update-type state
                                               (get-next-idx state 1)
                                               len-of-program)
                       :idx-order (update-idx-order state 1)
                       :accumulator (+ (state :accumulator)
                                       (instruction :argument)))))
 
-;finite state machine..
-(defn fsm [[instructions state]]
+
+(defn run-program [[instructions state]]
   [instructions
-   (let [last-execution-order (last (state :idx-order))]
-     (if (= :terminate (state :flag))
+   (let [last-execution-order (last (state :idx-order))
+         len-of-program (count instructions)]
+     (if (= :terminate (state :type))
        state
        (update-state (nth instructions last-execution-order)
                      state
-                     (count instructions))))])
+                     len-of-program)))])
 
 
-(defn start-fsm [[program state]]
-  (->> (iterate fsm [program state])
-       (drop-while (fn [[_ state]] (not (#{:in-loop :terminate} (state :flag)))))
+(defn start-program [[program state]]
+  (->> (iterate run-program [program state])
+       (drop-while (fn [[_ state]] (not (#{:in-loop :terminate} (state :type)))))
        first
        second))
 
-(def first-in-loop-state (start-fsm [boot-program initial-state]))
+(def first-in-loop-state (start-program [boot-program initial-state]))
 
 (comment
   (->> first-in-loop-state
@@ -106,8 +107,10 @@
                          [% :operation]
                          (fn [_] :nop))))))
 
-(->> (terminable-boot-programs boot-program first-in-loop-state)
-     (map #(start-fsm [% initial-state]))
-     (filter #(= :terminate (% :flag)))
-     (map :accumulator))
+(comment
+  (->> (terminable-boot-programs boot-program first-in-loop-state)
+       (map #(start-program [% initial-state]))
+       (filter #(= :terminate (% :type)))
+       (map :accumulator)))
+
 
