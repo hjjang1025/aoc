@@ -8,7 +8,6 @@
     {:operation (keyword opr)
      :argument (Integer/parseInt arg)}))
 
-
 (def boot-program (->> (slurp "resources/input_2020_8.txt")
                        str/split-lines
                        (map parse-instruction)))
@@ -25,20 +24,17 @@
 ; :terminate
 
 (defn in-loop? [state next-idx]
-  (->> (conj (state :idx-order) next-idx)
-       frequencies
-       (filter (fn [[_ v]] (> v 1)))
-       seq))
+  ((set (state :idx-order)) next-idx))
 
-(defn terminate? [next-idx size-of-instructions]
+
+(defn terminate? [next-idx len-of-program]
   (> next-idx
-     (- size-of-instructions 1)))
+     (- len-of-program 1)))
 
 
-
-(defn update-flag [state next-idx size-of-instructions]
+(defn update-flag [state next-idx len-of-program]
   (cond (in-loop? state next-idx) :in-loop
-        (terminate? next-idx size-of-instructions) :terminate
+        (terminate? next-idx len-of-program) :terminate
         :else :running))
 
 
@@ -47,26 +43,26 @@
      delta))
 
 
-(defn update-idx-order [state step]
+(defn update-idx-order [state delta]
   (conj (state :idx-order)
-        (get-next-idx state step)))
+        (get-next-idx state delta)))
 
 
-(defn update-state [instruction state size-of-instructions]
+(defn update-state [instruction state len-of-program]
   (case (instruction :operation)
     :nop (assoc state :flag      (update-flag state
                                               (get-next-idx state 1)
-                                              size-of-instructions)
+                                              len-of-program)
                       :idx-order (update-idx-order state 1))
 
     :jmp (assoc state :flag      (update-flag state
                                               (get-next-idx state (instruction :argument))
-                                              size-of-instructions)
+                                              len-of-program)
                       :idx-order (update-idx-order state (instruction :argument)))
 
     :acc (assoc state :flag      (update-flag state
                                               (get-next-idx state 1)
-                                              size-of-instructions)
+                                              len-of-program)
                       :idx-order (update-idx-order state 1)
                       :accumulator (+ (state :accumulator)
                                       (instruction :argument)))))
@@ -82,13 +78,14 @@
                      (count instructions))))])
 
 
-(fsm [boot-program initial-state])
+(defn start-fsm [[program state]]
+  (->> (iterate fsm [program state])
+       (drop-while (fn [[_ state]] (not (#{:in-loop :terminate} (state :flag)))))
+       first
+       second))
 
+(def first-in-loop-state (start-fsm [boot-program initial-state]))
 
-(def first-in-loop-state (->> (iterate fsm [boot-program initial-state])
-                              (drop-while (fn [[_ state]] (not= :in-loop (state :flag))))
-                              first
-                              second))
 (comment
   (->> first-in-loop-state
        :accumulator))
@@ -97,7 +94,7 @@
 
 ;===========[Part 2]===========
 
-(defn generate-boot-programs
+(defn terminable-boot-programs
   "part1 에서 구한 first-in-loop-state 의 idx-order 를 활용해서
   jmp->nop 로 바꾼 program sequence를 생성"
   [original-boot-program state]
@@ -105,18 +102,12 @@
                      (filter #(= :jmp
                                  ((nth original-boot-program %) :operation))))]
    (->> jmp-idxs
-        (map #(update-in (vec original-boot-program) [% :operation] (fn [_] :nop))))))
+        (map #(update-in (vec original-boot-program)
+                         [% :operation]
+                         (fn [_] :nop))))))
 
-
-(defn start-fsm [[program state]]
-  (->> (iterate fsm [program state])
-       (drop-while (fn [[_ state]] (not (#{:in-loop :terminate} (state :flag)))))
-       first
-       second))
-
-(->> (generate-boot-programs boot-program first-in-loop-state)
+(->> (terminable-boot-programs boot-program first-in-loop-state)
      (map #(start-fsm [% initial-state]))
      (filter #(= :terminate (% :flag)))
      (map :accumulator))
-
 
