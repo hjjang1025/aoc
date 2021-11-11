@@ -110,6 +110,5 @@
 (comment
   (->> records
        generate-guard-sleep-frequencies-log
-       (filter #(-> % :minute-frequencies seq)) ; NullPointException을 막기 위해 한번도 잠들지 않은 guard를 filter로 제거
-       (apply max-key #(-> % :minute-frequencies last second)) ; 가장 큰 frequency 기준으로 최대값 추출
+       (apply max-key :max-frequency) ; 가장 큰 frequency 기준으로 최대값 추출
        print-answer))
