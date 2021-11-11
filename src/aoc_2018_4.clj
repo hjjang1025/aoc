@@ -70,37 +70,43 @@
        (reduce concat)))
 
 ;4-------------------------------
+(defn most-frequent-minute-and-frequency [minutes]
+  (if (seq minutes)
+    (->> (frequencies minutes)
+         (apply max-key val))
+    [0 0]))
+
+
 (defn format-guard-sleep-log
   "get duration and frequencies"
-  [guard sleep-minutes]
-  {:guard       guard
-   :duration    (count sleep-minutes)
-   :minute-frequencies (sort-by val (frequencies sleep-minutes))})
+  [[guard repeat-sleep-wake]]
+  (let [sleep-minutes (all-sleep-minutes repeat-sleep-wake)
+        [most-frequent-minute max-frequency] (most-frequent-minute-and-frequency sleep-minutes)]
+    {:guard                guard
+     :duration             (count sleep-minutes)
+     :most-frequent-minute most-frequent-minute
+     :max-frequency        max-frequency}))
+
 
 (defn generate-guard-sleep-frequencies-log [records]
   (->> records
        (reduce generate-guard-minute-logs {:logs [] :last-guard 0}) ;1
        :logs
        (apply (partial merge-with into)) ;2 ⭐ apply 사용 (같은 guard 병합)
-       (map (fn [[guard repeat-sleep-wake]]
-              (format-guard-sleep-log guard
-                                      (all-sleep-minutes repeat-sleep-wake))))))  ;3, 4)
+       (map format-guard-sleep-log))) ;3, 4
 
-(defn print-answer [{:keys [guard minute-frequencies]}]
-  (* guard (-> minute-frequencies
-               last
-               first)))
+(defn print-answer
+  "⭐ 정답 계산 "
+  [{:keys [guard most-frequent-minute]}]
+  (* guard most-frequent-minute))
 
 (comment
   (->> records
        generate-guard-sleep-frequencies-log
-       (apply max-key :duration)
+       (apply max-key :duration)  ;⭐ 최대값 구하기->sort 대신 max-key로 변경
        print-answer))
-   ;⭐ 최대값 구하기->sort 대신 max-key로 변경
-
 
 ;===========[Part 2]===========
-
 (comment
   (->> records
        generate-guard-sleep-frequencies-log
