@@ -38,17 +38,21 @@
        str/split-lines
        vec))
 
-;(common-between "abcde" "abcee") => abce
-;(common-between "abcdefff" "abceeggg") => nil
-; 함수 분리하기
-(defn common-letters-between [[str-a str-b]]
-  (let [common-str (->> (map vector str-a str-b) ; [(\a \a) (\b \b) (\c \c) (\d \e) (\e \e)]
-                        (filter (fn [[x y]] (= x y))) ; [(\a \a) (\b \b) (\c \c) (\e \e)]
-                        (map first) ; [\a \b \c \e]
-                        str/join)]  ; abce
-    (when (= (count common-str)
+
+(defn common-letters-between
+  "(common-letters-between \"abcde\" \"abcee\") => abce"
+  [str-a str-b]
+  (->> (map vector str-a str-b) ; [(\a \a) (\b \b) (\c \c) (\d \e) (\e \e)]
+       (filter (fn [[x y]] (= x y))) ; [(\a \a) (\b \b) (\c \c) (\e \e)]
+       (map first) ; [\a \b \c \e]
+       str/join))
+
+(defn valid-common-letters [[str-a str-b]]
+  (let [common-letters (common-letters-between str-a str-b)]
+    (when (= (count common-letters)
              (- (count str-a) 1))
-      common-str)))
+      common-letters)))
+
 
 ;;;;
 ; 연산할 조합 리스트
@@ -59,5 +63,5 @@
 ;⭐️Reduce
 (comment
   (->> ids-cartesian-product
-       (keep common-letters-between)))
+       (keep valid-common-letters)))
 
