@@ -59,5 +59,5 @@
 ;⭐️Reduce
 (comment
   (->> ids-cartesian-product
-       (keep #(common-letters-between %))))
+       (keep common-letters-between)))
 

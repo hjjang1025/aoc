@@ -21,7 +21,7 @@
        (map match)))
 
 
-;Refactoring⭐ take, drop to range
+;⭐ take, drop to range
 ;(take width (drop x (range) 에서
 ;x가 아주 커질 경우 성능 이슈가 있을 수 있다고 합니다
 
@@ -29,8 +29,8 @@
 ; => {[1 3] 1 [1 4] 1
 ;     [2 3] 1 [2 4] 1}
 (defn fabric-piece [{:keys [x y width height]}]
-  (->> (for [xs (range x (+ x width))  ; `(1 2) ;Refactoring⭐ take, drop to range
-             ys (range y (+ y height))]; `(3 4) ;Refactoring⭐ take, drop to range
+  (->> (for [xs (range x (+ x width))  ; `(1 2) ;⭐ take, drop to range
+             ys (range y (+ y height))]; `(3 4) ;⭐ take, drop to range
          [xs ys])
        frequencies))
 
@@ -59,7 +59,7 @@
 
 ;fabric-intersection-set : part1의 마지막 loop를 활용한 교집합 좌표 set
 
-; Refactoring⭐ loop to reduce
+; ⭐ loop to reduce
 (def fabric-intersection-set
   (->> input-list
        (reduce generate-fabric-map {})
@@ -69,7 +69,7 @@
 
 ;fabric-intersection-set에 포함된 좌표가 없는 order를 출력
 
-; Refactoring⭐ loop to filter
+; ⭐ loop to filter
 (defn not-in-intersection-set [order]
   (when (empty? (set/intersection (fabric-piece-set order)
                                   fabric-intersection-set))
@@ -77,7 +77,7 @@
 
 (comment
   (->> input-list
-       (keep not-in-intersection-set))) ;Refactoring⭐ nil 제외하는 keep
+       (keep not-in-intersection-set))) ;⭐ nil 제외하는 keep
 
 
 
