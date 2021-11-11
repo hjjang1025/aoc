@@ -2,9 +2,12 @@
   (:require [clojure.string :as str]))
 
 ;===========[Part 1]===========
-;(reactive? \a \A) => true
-;(reactive? \A \a) => true
-(defn reactive? "반응할 수 있는 조건" [left right]
+
+(defn reactive?
+  "반응할 수 있는 조건
+  (reactive? a A) => true
+  (reactive? A a) => true
+  " [left right]
   (= 32 (Math/abs (- (int left) (int right)))))
 
 ;example : vVabcZz
@@ -16,6 +19,7 @@
 ;c => [a b c]
 ;Z => [a b c Z]
 ;z => [a b c]
+
 (defn generate-remain-polymer
   "reactive? 에 부합하지 않는 문자열 vector(=remain)를 취합"
   [remain unit]
@@ -34,17 +38,13 @@
 ;===========[Part 2]===========
 
 
-(def units ["aA" "bB" "cC" "dD" "eE" "fF" "gG" "hH" "iI" "jJ" "kK" "lL" "mM" "nN"
-                "oO" "pP" "qQ" "rR" "sS" "tT" "uU" "vV" "wW" "xX" "yY" "zZ"])
-;TODO for -> get seq
-;(for [i (range 97 123)] (reduce..))
-;regex 알파벳 무관하게
+(def units "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 
 (defn polymer-without-unit
   "unit(알파벳) 하나씩 빠진 polymer sequence"
-  [unit]
-  (str/replace polymer
-               (re-pattern (format "[%s]" unit))
+  [original-polymer unit]
+  (str/replace original-polymer
+               (re-pattern (format "(?i)[%s]" unit))
                ""))
 
 (defn get-remain-count [str]
@@ -54,7 +54,7 @@
 
 (comment
   (->> units
-       (map polymer-without-unit)
+       (map (partial polymer-without-unit polymer))
        (map get-remain-count)
        (apply min)))
 
