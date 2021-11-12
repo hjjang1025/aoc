@@ -26,8 +26,8 @@
 
 ;[⭐3] ->> 로 정리
 (comment
-  (* (->> box-ids (count-duplicate-alphabet 2))
-     (->> box-ids (count-duplicate-alphabet 3))))
+  (* (count-duplicate-alphabet 2 box-ids)
+     (count-duplicate-alphabet 3 box-ids)))
 
 ;parse / process / aggregate / print
 
