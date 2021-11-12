@@ -34,7 +34,8 @@
 
 (defn update-type [state next-idx len-of-program]
   (cond (in-loop? state next-idx) :in-loop
-        (terminate? next-idx len-of-program) :terminate
+        (or (terminate? next-idx len-of-program)
+            (= :terminate (state :type))) :terminate
         :else :running))
 
 
@@ -47,45 +48,41 @@
   (conj (state :idx-order)
         (get-next-idx state delta)))
 
+(defn update-state [{:keys [program state]}]
+  (let [last-idx-order (last (state :idx-order))
+        len-of-program (count program)
+        instruction (nth program last-idx-order)]
+    (case (instruction :operation)
+      :nop (assoc state :type      (update-type state
+                                                (get-next-idx state 1)
+                                                len-of-program)
+                        :idx-order (update-idx-order state 1))
 
-(defn update-state [instruction state len-of-program]
-  (case (instruction :operation)
-    :nop (assoc state :type      (update-type state
-                                              (get-next-idx state 1)
-                                              len-of-program)
-                      :idx-order (update-idx-order state 1))
+      :jmp (assoc state :type      (update-type state
+                                                (get-next-idx state (instruction :argument))
+                                                len-of-program)
+                        :idx-order (update-idx-order state (instruction :argument)))
 
-    :jmp (assoc state :type      (update-type state
-                                              (get-next-idx state (instruction :argument))
-                                              len-of-program)
-                      :idx-order (update-idx-order state (instruction :argument)))
+      :acc (assoc state :type      (update-type state
+                                                (get-next-idx state 1)
+                                                len-of-program)
+                        :idx-order (update-idx-order state 1)
+                        :accumulator (+ (state :accumulator)
+                                        (instruction :argument))))))
 
-    :acc (assoc state :type      (update-type state
-                                              (get-next-idx state 1)
-                                              len-of-program)
-                      :idx-order (update-idx-order state 1)
-                      :accumulator (+ (state :accumulator)
-                                      (instruction :argument)))))
-
-
-(defn run-program [[instructions state]]
-  [instructions
-   (let [last-execution-order (last (state :idx-order))
-         len-of-program (count instructions)]
-     (if (= :terminate (state :type))
-       state
-       (update-state (nth instructions last-execution-order)
-                     state
-                     len-of-program)))])
+(defn run-program [process]
+   (assoc process :state (update-state process)))
 
 
-(defn start-program [[program state]]
-  (->> (iterate run-program [program state])
-       (drop-while (fn [[_ state]] (not (#{:in-loop :terminate} (state :type)))))
-       first
-       second))
+(defn start-program [{:keys [program state]}]
+  (->> (iterate run-program {:program program :state state})
+       (drop-while (fn [{:keys [state]}]
+                     (not (#{:in-loop :terminate} (state :type)))))
+       first))
 
-(def first-in-loop-state (start-program [boot-program initial-state]))
+(def first-in-loop-state (-> (start-program {:program boot-program
+                                             :state initial-state})
+                             :state))
 
 (comment
   (->> first-in-loop-state
@@ -109,8 +106,6 @@
 
 (comment
   (->> (terminable-boot-programs boot-program first-in-loop-state)
-       (map #(start-program [% initial-state]))
-       (filter #(= :terminate (% :type)))
-       (map :accumulator)))
-
-
+       (map #(start-program {:program % :state initial-state}))
+       (filter #(= :terminate (-> % :state :type)))
+       (map #(-> % :state :accumulator))))
