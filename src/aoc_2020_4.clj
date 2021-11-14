@@ -12,7 +12,6 @@
                   :passport-id     "pid"
                   :country-id      "cid"})
 
-
 (s/def :passport/birth-year      #(re-find (re-pattern (format "%s:" (field->code :birth-year))) %))
 (s/def :passport/issue-year      #(re-find (re-pattern (format "%s:" (field->code :issue-year))) %))
 (s/def :passport/expiration-year #(re-find (re-pattern (format "%s:" (field->code :expiration-year))) %))
@@ -58,30 +57,69 @@
     (Integer/parseInt str)
     str))
 
-(defn parse-year-in-passport-words [passport-words]
-  (->> passport-words
-       (map str->year)))
+(defn str->height [str]
+  (if-let [[_ height type]
+           (re-matches #"([0-9]+)(cm|in)" str)]
+    {:height (Integer/parseInt height)
+     :type (keyword type)}
+    {:height 0 :type nil}))
 
-;Parse
-; "iyr:2013 byr:1997 hgt:182cm hcl:#ceb3a1\neyr:2027\necl:gry cid:102 pid:018128535"
-; => ["iyr" "2013" "byr" "1997" "hgt" "182cm" "hcl" "#ceb3a1" "eyr" "2027" "ecl" "gry" "cid" "102" "pid" "018128535"]
-; => {"hgt" "182cm", "pid" "018128535", "byr" 1997, "eyr" 2027, "iyr" 2013, "ecl" "gry", "cid" "102", "hcl" "#ceb3a1"}
-(def passports (->> passport-texts
-                    (keep (fn [text] (when (valid-passport? text) text)))
-                    (map (fn [text]
-                           (-> (str/replace text #" |:|\n" " ")
-                               (str/split #" "))))
-                    (map parse-year-in-passport-words)
-                    (map (fn [words]
-                           (apply hash-map words)))))
+
+(defn format-passport 
+  "Parse
+  {:iyr 2013,  :byr 1997,
+  :hgt {:height 182, :type \"cm\"},
+  :hcl \"#ceb3a1\",
+  :eyr 2027,  :ecl :gry,
+  :cid \"102\",
+  :pid \"018128535\"}"
+  [[key-str value-str]]
+  (let [key (keyword key-str)]
+    (case key
+     :byr {key (str->year value-str)}
+     :iyr {key (str->year value-str)}
+     :eyr {key (str->year value-str)}
+     :hgt {key (str->height value-str)}
+     :hcl {key value-str}
+     :ecl {key (keyword value-str)}
+     :pid {key value-str}
+     :cid {key value-str}
+     nil)))
+
+(defn parse-passport [passport-text]
+  (->> (-> (str/replace passport-text #" |:|\n" " ")
+           (str/split #" "))
+       (partition 2)
+       (keep format-passport)
+       (apply merge)))
+
+(defn valid-height? [height-and-type]
+  (let [height (:height height-and-type)
+        type (:type height-and-type)]
+    (when (and height type)
+      (cond (and (= type :cm)
+                 (s/int-in-range? 150 194 height)) true
+            (and (= type :in)
+                 (s/int-in-range? 59 77 height)) true
+            :else false))))
+
+(defn valid-hair-color? [heir-color]
+  (when heir-color
+    (re-matches #"#[0-9|a-f]{6}" heir-color)))
+
+(defn valid-passport-id? [passport-id]
+  (when passport-id
+    (re-matches #"[0-9]{9}" passport-id)))
+
+(def eye-colors #{:amb :blu :brn :gry :grn :hzl :oth})
 
 (s/def :complete-passport/birth-year      (s/int-in 1920 2003))
 (s/def :complete-passport/issue-year      (s/int-in 2010 2021))
 (s/def :complete-passport/expiration-year (s/int-in 2020 2031))
-(s/def :complete-passport/height       #(re-matches #"1[5-8][0-9]cm|19[0-3]cm|59in|6[0-9]in|7[0-6]in" %))
-(s/def :complete-passport/hair-color   #(re-matches #"#[0-9|a-f]{6}" %))
-(s/def :complete-passport/eye-color    #(re-matches #"amb|blu|brn|gry|grn|hzl|oth" %))
-(s/def :complete-passport/passport-id  #(re-matches #"[0-9]{9}" %))
+(s/def :complete-passport/height       #(valid-height? %))
+(s/def :complete-passport/hair-color   #(valid-hair-color? %))
+(s/def :complete-passport/eye-color    #(eye-colors %))
+(s/def :complete-passport/passport-id  #(valid-passport-id? %))
 
 (s/def :complete-passport/available
   (s/keys :req [:complete-passport/birth-year
@@ -94,16 +132,18 @@
 
 
 (defn complete-valid-passport? [passport]
-  (s/valid? :complete-passport/available {:complete-passport/birth-year (passport (field->code :birth-year))
-                                          :complete-passport/issue-year (passport (field->code :issue-year))
-                                          :complete-passport/expiration-year (passport (field->code :expiration-year))
-                                          :complete-passport/height (passport (field->code :height))
-                                          :complete-passport/hair-color  (passport (field->code :hair-color))
-                                          :complete-passport/eye-color (passport (field->code :eye-color))
-                                          :complete-passport/passport-id (passport (field->code :passport-id))}))
+  (s/valid? :complete-passport/available
+              {:complete-passport/birth-year      (passport :byr)
+               :complete-passport/issue-year      (passport :iyr)
+               :complete-passport/expiration-year (passport :eyr)
+               :complete-passport/height          (passport :hgt)
+               :complete-passport/hair-color      (passport :hcl)
+               :complete-passport/eye-color       (passport :ecl)
+               :complete-passport/passport-id     (passport :pid)}))
 
 (comment
-  (->> passports
+  (->> passport-texts
+       (map parse-passport)
        (filter complete-valid-passport?)
        count))
 
